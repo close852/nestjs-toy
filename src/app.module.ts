@@ -1,12 +1,34 @@
 import { Module } from "@nestjs/common";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
-import { ConfigModule } from "@nestjs/config";
+import { ConfigModule, ConfigService } from "@nestjs/config";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { typeORMConfig } from "./config/ormconfig";
+import { ClsModule } from "nestjs-cls";
+import { ClsPluginTransactional } from "@nestjs-cls/transactional";
+import { TransactionalAdapterTypeOrm } from "@nestjs-cls/transactional-adapter-typeorm";
+import { DataSource } from "typeorm";
+import { getEnvFilePath } from "./database/data-source";
 
-const NODE_ENV = process.env.NODE_ENV;
-const envFilePath = ".env" + (NODE_ENV == "local" ? ".local" : NODE_ENV == "development" ? ".development" : "");
 @Module({
-  imports: [ConfigModule.forRoot({ envFilePath })],
+  imports: [
+    ConfigModule.forRoot({ envFilePath: getEnvFilePath() }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => {
+        return typeORMConfig(config);
+      },
+    }),
+    ClsModule.forRoot({
+      plugins: [
+        new ClsPluginTransactional({
+          imports: [TypeOrmModule],
+          adapter: new TransactionalAdapterTypeOrm({ dataSourceToken: DataSource }),
+        }),
+      ],
+    }),
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
