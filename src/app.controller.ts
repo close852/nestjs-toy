@@ -1,4 +1,4 @@
-import { Body, ClassSerializerInterceptor, Controller, Get, Logger, Post, Query, UseInterceptors } from "@nestjs/common";
+import { Body, ClassSerializerInterceptor, Controller, Get, Logger, Post, Query, UseGuards, UseInterceptors } from "@nestjs/common";
 import { AppService } from "./app.service";
 import { UploadedFile, UploadedFiles } from "./decorators";
 import { FastifyFile } from "./types/fastify.file";
@@ -8,6 +8,7 @@ import { AwsService } from "./aws/aws.service";
 import User from "./user/user.entity";
 import UserConfig from "./user/user.config.entity";
 import { getFileByLocalSchema, getFileByS3Schema, getHelloSchema, getUsersSchema, postFileUploadSchema } from "./swaggers/app.decorator";
+import { UserTokenAuthGuard } from "./guards";
 @Controller()
 export class AppController {
   private readonly logger = new Logger(AppController.name);
@@ -18,6 +19,7 @@ export class AppController {
   ) {}
 
   @Get("/users")
+  @UseGuards(UserTokenAuthGuard)
   @UseInterceptors(ClassSerializerInterceptor)
   @getUsersSchema()
   getUser() {

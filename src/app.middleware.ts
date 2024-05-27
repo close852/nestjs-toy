@@ -11,8 +11,12 @@ import { HttpAdapterHost } from "@nestjs/core";
 import { AllExceptionsFilter, ValidationExceptionFilter } from "./filters";
 import { LoggingInterceptor, SuccessInterceptor } from "./interceptors";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import { ConfigService } from "@nestjs/config";
 
 export async function middleware(app: NestFastifyApplication): Promise<INestApplication> {
+  const configService = new ConfigService();
+  const secret = configService.get("SESSION_SECRET");
+
   const httpAdapterHost = app.get(HttpAdapterHost);
   app.useGlobalInterceptors(new SuccessInterceptor(), new LoggingInterceptor());
   app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost), new ValidationExceptionFilter(httpAdapterHost));
@@ -53,8 +57,8 @@ export async function middleware(app: NestFastifyApplication): Promise<INestAppl
     };
   });
 
-  app.register(fastifyCookie, { secret: process.env.SESSION_SECRET, parseOptions: { httpOnly: true } });
-  app.register(fastifySession, { secret: process.env.SESSION_SECRET, cookie: { secure: false, httpOnly: true } });
+  app.register(fastifyCookie, { secret, parseOptions: { httpOnly: true } });
+  app.register(fastifySession, { secret, cookie: { secure: false, httpOnly: true } });
 
   setSwaggerMiddleware(app);
 
