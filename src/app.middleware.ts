@@ -5,15 +5,24 @@ import fastifySession from "@fastify/session";
 import cors, { FastifyCorsOptions } from "@fastify/cors";
 import multipart from "@fastify/multipart";
 import { join } from "path";
+import { ValidationError } from "class-validator";
+import { ValidationException } from "./exceptions/validation.exception";
+import { HttpAdapterHost } from "@nestjs/core";
+import { AllExceptionsFilter, ValidationExceptionFilter } from "./filters";
+import { LoggingInterceptor, SuccessInterceptor } from "./interceptors";
+import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 
 export async function middleware(app: NestFastifyApplication): Promise<INestApplication> {
+  const httpAdapterHost = app.get(HttpAdapterHost);
+  app.useGlobalInterceptors(new SuccessInterceptor(), new LoggingInterceptor());
+  app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost), new ValidationExceptionFilter(httpAdapterHost));
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true, // dto 전환
       transformOptions: { enableImplicitConversion: true },
       whitelist: true, // only required validator output
       validateCustomDecorators: true, //custom decorators, validator too like ParamAndBody
-      // exceptionFactory: (errors: ValidationError[]) => new ValidationException(errors),
+      exceptionFactory: (errors: ValidationError[]) => new ValidationException(errors),
     })
   );
   app.register(multipart, {
@@ -46,5 +55,18 @@ export async function middleware(app: NestFastifyApplication): Promise<INestAppl
 
   app.register(fastifyCookie, { secret: process.env.SESSION_SECRET, parseOptions: { httpOnly: true } });
   app.register(fastifySession, { secret: process.env.SESSION_SECRET, cookie: { secure: false, httpOnly: true } });
+
+  setSwaggerMiddleware(app);
+
   return app;
+}
+function setSwaggerMiddleware(app: NestFastifyApplication) {
+  const config = new DocumentBuilder()
+    .setTitle("Nestjs Toy API DOCS")
+    .setVersion("1.0")
+    .addBearerAuth({ type: "http", scheme: "bearer", name: "JWT", in: "header" })
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup("/api", app, document, { swaggerOptions: { defaultModelsExpandDepth: -1 } });
 }

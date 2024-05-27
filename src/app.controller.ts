@@ -1,10 +1,12 @@
-import { Body, Controller, Get, Logger, Post, Query } from "@nestjs/common";
+import { Body, ClassSerializerInterceptor, Controller, Get, Logger, Post, Query, UseInterceptors } from "@nestjs/common";
 import { AppService } from "./app.service";
 import { UploadedFile, UploadedFiles } from "./decorators";
 import { FastifyFile } from "./types/fastify.file";
 import * as fs from "fs";
 import { join } from "path";
 import { AwsService } from "./aws/aws.service";
+import User from "./user/user.entity";
+import UserConfig from "./user/user.config.entity";
 @Controller()
 export class AppController {
   private readonly logger = new Logger(AppController.name);
@@ -13,6 +15,21 @@ export class AppController {
     private readonly appService: AppService,
     private readonly awsService: AwsService
   ) {}
+
+  @Get("/users")
+  @UseInterceptors(ClassSerializerInterceptor)
+  getUser() {
+    const user = new User();
+    user.id = 1;
+    user.name = "name";
+    user.password = "password";
+    const config = new UserConfig();
+    config.user_id = 1;
+    config.is_ok = false;
+    user.config = config;
+
+    return [user];
+  }
 
   @Get()
   getHello(): string {
