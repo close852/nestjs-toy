@@ -7,6 +7,7 @@ import { join } from "path";
 import { AwsService } from "./aws/aws.service";
 import User from "./user/user.entity";
 import UserConfig from "./user/user.config.entity";
+import { getFileByLocalSchema, getFileByS3Schema, getHelloSchema, getUsersSchema, postFileUploadSchema } from "./swaggers/app.decorator";
 @Controller()
 export class AppController {
   private readonly logger = new Logger(AppController.name);
@@ -18,6 +19,7 @@ export class AppController {
 
   @Get("/users")
   @UseInterceptors(ClassSerializerInterceptor)
+  @getUsersSchema()
   getUser() {
     const user = new User();
     user.id = 1;
@@ -32,10 +34,12 @@ export class AppController {
   }
 
   @Get()
+  @getHelloSchema()
   getHello(): string {
     return this.appService.getHello();
   }
   @Post()
+  @postFileUploadSchema()
   async fileUploadTest(@UploadedFile("profile") profile: FastifyFile, @Body("name") name: string, @UploadedFiles("images") images: FastifyFile[]) {
     //로컬에 저장하기
     const path = join(process.cwd(), "public", "assets", "images", profile.filename);
@@ -47,11 +51,13 @@ export class AppController {
     return { is_success: true };
   }
   @Get("file")
+  @getFileByS3Schema()
   async getFileByS3(@Query("key") Key: string) {
     const url = await this.awsService.getPresignedURL(Key);
     return { url };
   }
   @Get("local")
+  @getFileByLocalSchema()
   async getFileByLocal(@Query("key") Key: string) {
     const path = "public/assets/";
     return path + Key;

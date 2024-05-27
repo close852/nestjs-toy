@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Exclude } from "class-transformer";
-import { IsString } from "class-validator";
+import { IsObject, IsString } from "class-validator";
 import { BaseEntity, Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import UserConfig from "./user.config.entity";
 
@@ -21,6 +21,7 @@ export default class User extends BaseEntity {
   @Exclude()
   password: string;
 
+  @ApiProperty({ type: () => UserConfig })
   @OneToMany(() => UserConfig, (config) => config.user)
   config: UserConfig;
 }
