@@ -9,6 +9,7 @@ import { ClsPluginTransactional } from "@nestjs-cls/transactional";
 import { TransactionalAdapterTypeOrm } from "@nestjs-cls/transactional-adapter-typeorm";
 import { DataSource } from "typeorm";
 import { getEnvFilePath } from "./database/data-source";
+import { AwsService } from "./aws/aws.service";
 
 @Module({
   imports: [
@@ -30,6 +31,6 @@ import { getEnvFilePath } from "./database/data-source";
     }),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, AwsService],
 })
 export class AppModule {}

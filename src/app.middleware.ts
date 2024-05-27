@@ -4,6 +4,7 @@ import fastifyCookie from "@fastify/cookie";
 import fastifySession from "@fastify/session";
 import cors, { FastifyCorsOptions } from "@fastify/cors";
 import multipart from "@fastify/multipart";
+import { join } from "path";
 
 export async function middleware(app: NestFastifyApplication): Promise<INestApplication> {
   app.useGlobalPipes(
@@ -34,6 +35,7 @@ export async function middleware(app: NestFastifyApplication): Promise<INestAppl
       headerPairs: 2000, // Max number of header key=>value pairs
     },
   });
+  ["/public/assets"].forEach((prefix) => app.useStaticAssets({ root: join(process.cwd(), prefix), prefix }));
 
   app.register(cors, () => {
     return (_: any, callback: (error: Error | null, options: FastifyCorsOptions) => void) => {
