@@ -9,6 +9,7 @@ async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter(), { logger: winstonLogger });
 
   middleware(app);
+
   //https://stackoverflow.com/questions/14043926/node-js-connect-only-works-on-localhost
   await app.listen(PORT, "0.0.0.0");
   console.log(`http://localhost:${PORT}`);

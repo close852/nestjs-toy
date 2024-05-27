@@ -5,15 +5,23 @@ import fastifySession from "@fastify/session";
 import cors, { FastifyCorsOptions } from "@fastify/cors";
 import multipart from "@fastify/multipart";
 import { join } from "path";
+import { ValidationError } from "class-validator";
+import { ValidationException } from "./exceptions/validation.exception";
+import { HttpAdapterHost } from "@nestjs/core";
+import { AllExceptionsFilter, ValidationExceptionFilter } from "./filters";
+import { LoggingInterceptor, SuccessInterceptor } from "./interceptors";
 
 export async function middleware(app: NestFastifyApplication): Promise<INestApplication> {
+  const httpAdapterHost = app.get(HttpAdapterHost);
+  app.useGlobalInterceptors(new SuccessInterceptor(), new LoggingInterceptor());
+  app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost), new ValidationExceptionFilter(httpAdapterHost));
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true, // dto 전환
       transformOptions: { enableImplicitConversion: true },
       whitelist: true, // only required validator output
       validateCustomDecorators: true, //custom decorators, validator too like ParamAndBody
-      // exceptionFactory: (errors: ValidationError[]) => new ValidationException(errors),
+      exceptionFactory: (errors: ValidationError[]) => new ValidationException(errors),
     })
   );
   app.register(multipart, {
