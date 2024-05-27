@@ -10,6 +10,7 @@ import { ValidationException } from "./exceptions/validation.exception";
 import { HttpAdapterHost } from "@nestjs/core";
 import { AllExceptionsFilter, ValidationExceptionFilter } from "./filters";
 import { LoggingInterceptor, SuccessInterceptor } from "./interceptors";
+import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 
 export async function middleware(app: NestFastifyApplication): Promise<INestApplication> {
   const httpAdapterHost = app.get(HttpAdapterHost);
@@ -54,5 +55,18 @@ export async function middleware(app: NestFastifyApplication): Promise<INestAppl
 
   app.register(fastifyCookie, { secret: process.env.SESSION_SECRET, parseOptions: { httpOnly: true } });
   app.register(fastifySession, { secret: process.env.SESSION_SECRET, cookie: { secure: false, httpOnly: true } });
+
+  setSwaggerMiddleware(app);
+
   return app;
+}
+function setSwaggerMiddleware(app: NestFastifyApplication) {
+  const config = new DocumentBuilder()
+    .setTitle("Nestjs Toy API DOCS")
+    .setVersion("1.0")
+    .addBearerAuth({ type: "http", scheme: "bearer", name: "JWT", in: "header" })
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup("/api", app, document, { swaggerOptions: { defaultModelsExpandDepth: -1 } });
 }
