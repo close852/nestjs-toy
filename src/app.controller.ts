@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query } from "@nestjs/common";
+import { Body, Controller, Get, Logger, Post, Query } from "@nestjs/common";
 import { AppService } from "./app.service";
 import { UploadedFile, UploadedFiles } from "./decorators";
 import { FastifyFile } from "./types/fastify.file";
@@ -7,6 +7,8 @@ import { join } from "path";
 import { AwsService } from "./aws/aws.service";
 @Controller()
 export class AppController {
+  private readonly logger = new Logger(AppController.name);
+
   constructor(
     private readonly appService: AppService,
     private readonly awsService: AwsService
