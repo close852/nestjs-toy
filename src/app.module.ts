@@ -10,6 +10,7 @@ import { TransactionalAdapterTypeOrm } from "@nestjs-cls/transactional-adapter-t
 import { DataSource } from "typeorm";
 import { getEnvFilePath } from "./database/data-source";
 import { AwsService } from "./aws/aws.service";
+import { UserTokenStrategy } from "./strategies";
 
 @Module({
   imports: [
@@ -31,6 +32,6 @@ import { AwsService } from "./aws/aws.service";
     }),
   ],
   controllers: [AppController],
-  providers: [AppService, AwsService],
+  providers: [AppService, AwsService, UserTokenStrategy],
 })
 export class AppModule {}
