@@ -1,5 +1,4 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsObject } from "class-validator";
 import { BaseEntity, Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import User from "./user.entity";
 import { Exclude } from "class-transformer";
@@ -17,9 +16,8 @@ export default class UserConfig extends BaseEntity {
   @Exclude()
   is_ok: boolean;
 
+  @ApiProperty({ type: () => User })
   @ManyToOne(() => User, (u) => u.id)
   @JoinColumn({ name: "user_id" })
-  @ApiProperty()
-  @IsObject()
   user: User;
 }
